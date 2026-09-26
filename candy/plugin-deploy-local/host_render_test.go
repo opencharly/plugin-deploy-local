@@ -36,11 +36,13 @@ func (e *recordingExec) RunHostStep(_ context.Context, _ spec.InstallStepView, _
 	return nil, nil
 }
 
-// TestWalkPlans_HostDownloadGuardsAndEmptyTo pins the sdk#302 fix from THIS plugin's
-// entry point: plugin-deploy-local hands its executor straight to kit.WalkPlans, so the
-// host-venue emitted script for the exact plan that broke layer-kubernetes on
-// target:local — a `download:` with `extract: sh`, `unless_exists`, and no `to:` — must
-// (a) NOT emit `install -d ''`, (b) honour unless_exists, and (c) parse under `sh -n`.
+// TestWalkPlans_HostDownloadGuardsAndEmptyTo pins the fix for the host-renderer
+// defect filed as sdk#302 and merged as opencharly/sdk#303, from THIS plugin's
+// entry point: plugin-deploy-local hands its executor straight to kit.WalkPlans, so
+// the host-venue emitted script for the exact plan that broke layer-kubernetes on
+// target:local — a `download:` with `extract: sh`, `unless_exists`, and no `to:` —
+// must (a) NOT emit `install -d ''`, (b) honour unless_exists, and (c) parse under
+// `sh -n`.
 func TestWalkPlans_HostDownloadGuardsAndEmptyTo(t *testing.T) {
 	rec := &recordingExec{}
 	plans := []spec.InstallPlanView{{
