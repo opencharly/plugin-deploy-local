@@ -2,7 +2,7 @@ module github.com/opencharly/plugin-deploy-local/candy/plugin-deploy-local
 
 go 1.26.4
 
-require github.com/opencharly/sdk v0.2026269.958
+require github.com/opencharly/sdk v0.2026269.1353
 
 require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
