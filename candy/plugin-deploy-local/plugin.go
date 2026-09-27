@@ -28,6 +28,7 @@ package deploylocal
 
 import (
 	"context"
+	"embed"
 	"fmt"
 
 	"github.com/opencharly/sdk"
@@ -35,18 +36,22 @@ import (
 	pb "github.com/opencharly/spec/proto"
 )
 
+//go:embed schema/*.cue
+var schemaFS embed.FS
+
 const calver = "2026.181.0001"
 
 // NewProvider returns the deploylocal provider.
 func NewProvider() pb.ProviderServer { return &provider{} }
 
 // NewMeta advertises the deploy:local capability (empty InputDef — the substrate carries
-// no authored plugin_input) + its self-contained, load-gate-only CUE schema, via
-// sdk.NewMeta → BuildCapabilities.
+// no authored plugin_input) + this plugin's OWN self-contained CUE schema
+// (schema/local.cue, defining #DeployLocalPlugin, embedded via schemaFS), served over
+// Describe via sdk.NewMeta → BuildCapabilities. There is NO schema-less plugin.
 func NewMeta() pb.PluginMetaServer {
 	return sdk.NewMeta(calver,
 		[]sdk.ProvidedCapability{{Class: "deploy", Word: "local", InputDef: ""}},
-		nil)
+		schemaFS)
 }
 
 type provider struct{ pb.UnimplementedProviderServer }

@@ -41,7 +41,7 @@ func (e *recordingExec) RunHostStep(_ context.Context, _ spec.InstallStepView, _
 // entry point: plugin-deploy-local hands its executor straight to kit.WalkPlans, so
 // the host-venue emitted script for the exact plan that broke layer-kubernetes on
 // target:local — a `download:` with `extract: sh`, `unless_exists`, and no `to:` —
-// must (a) NOT emit `install -d ''`, (b) honour unless_exists, and (c) parse under
+// must (a) NOT emit an empty `install -d` argument, (b) honour unless_exists, and (c) parse under
 // `sh -n`.
 func TestWalkPlans_HostDownloadGuardsAndEmptyTo(t *testing.T) {
 	rec := &recordingExec{}
