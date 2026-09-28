@@ -1,5 +1,7 @@
+version: 2026.232.0520
 plugin-deploy-local:
     candy:
+        version: 2026.181.0001
         description: |-
             OUT-OF-TREE charly DEPLOY plugin serving the `local` deploy SUBSTRATE —
             `target: local` (host:local direct-shell) and `host: user@machine` (SSH)
