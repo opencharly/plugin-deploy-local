@@ -31,7 +31,7 @@ The plugin dials back through the SDK executor and hands the plans to the shared
   act-`Op` / `ExternalPlugin`) it drives over the `RunHostStep` reverse leg.
 
 It returns the combined teardown ops the host records in the install ledger and
-replays at `charly fleet del` (record-and-replay).
+replays at `charly deploy del` (record-and-replay).
 
 ## How to use it
 
