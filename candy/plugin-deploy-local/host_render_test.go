@@ -81,3 +81,70 @@ func TestWalkPlans_HostDownloadGuardsAndEmptyTo(t *testing.T) {
 		t.Fatalf("emitted script is not valid sh (%v):\n%s\n---\n%s", err, out, script)
 	}
 }
+
+// TestWalkPlans_HostDownloadExpandsCandyVarInDestination pins the fix for sdk#381 (merged as
+// opencharly/sdk#382, tagged v0.2026287.1411) FROM THIS PLUGIN'S ENTRY POINT — the same shape as the
+// test above, and for the same reason: this plugin hands its executor straight to kit.WalkPlans, so a
+// pin that predates the fix silently renders a destination the shell never expands.
+//
+// The defect it guards: the renderer double-quoted the URL (so a ${VAR} there expanded) while
+// single-quoting the DESTINATION, so a `to:` naming a candy var became a path LITERALLY called
+// "${VAR}" — resolved against the deploy's working directory. Measured on a real `target: local`
+// deploy: /home/<user>/${FC_TARBALL} appeared, and the next step failed with "Cannot open: No such
+// file or directory" for the real path.
+//
+// If anyone downgrades this module's sdk below the fix, this test is what fails.
+func TestWalkPlans_HostDownloadExpandsCandyVarInDestination(t *testing.T) {
+	const (
+		wantDir  = "/var/cache/charly/firecracker"
+		wantFile = wantDir + "/firecracker-v1.17.0-x86_64.tgz"
+	)
+
+	rec := &recordingExec{}
+	plans := []spec.InstallPlanView{{
+		Steps: []spec.InstallStepView{{
+			Kind:      "Op",
+			Scope:     spec.ScopeSystem,
+			CandyName: "layer-firecracker",
+			// The candy's own var: map, exactly as the walk receives it (the renderer substitutes
+			// THESE names before quoting — the fix under test).
+			CandyVars: map[string]string{"FC_TARBALL": wantFile},
+			Op: &spec.Op{
+				Download: "https://github.com/firecracker-microvm/firecracker/releases/download/v1.17.0/firecracker-v1.17.0-x86_64.tgz",
+				Extract:  "none",
+				To:       "${FC_TARBALL}",
+				Mode:     "0644",
+				RunAs:    "root",
+			},
+		}},
+	}}
+
+	if _, err := kit.WalkPlans(context.Background(), rec, plans, kit.WalkOpts{}); err != nil {
+		t.Fatalf("WalkPlans: %v", err)
+	}
+
+	script := strings.Join(rec.sysScripts, "\n")
+	if script == "" {
+		t.Fatal("no script emitted for the download step")
+	}
+
+	if strings.Contains(script, "${FC_TARBALL}") {
+		t.Fatalf("the destination kept its unexpanded var, so the shell writes a file literally named that:\n%s", script)
+	}
+
+	if !strings.Contains(script, "install -d -m0755 "+wantDir) {
+		t.Fatalf("the destination directory was not created from the substituted value:\n%s", script)
+	}
+
+	if !strings.Contains(script, "-o "+wantFile) {
+		t.Fatalf("the download did not target the substituted file path:\n%s", script)
+	}
+
+	// The rendered script must still be valid sh.
+	c := osexec.Command("sh", "-n")
+	c.Stdin = strings.NewReader(script)
+
+	if out, err := c.CombinedOutput(); err != nil {
+		t.Fatalf("emitted script is not valid sh (%v):\n%s\n---\n%s", err, out, script)
+	}
+}
