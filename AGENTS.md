@@ -22,9 +22,9 @@ Canonical files:
 
 - `/charly-local:local-deploy` — `target: local` deployments, the Ansible-style
   `host:` destination field, the managed ssh_config fragment, the install ledger,
-  and ReverseOp teardown. Load before changing the deploy walk. This candy
-  carries no `skill:` entity of its own; the gap is tracked in
-  [opencharly/opencharly#291](https://github.com/opencharly/opencharly/issues/291).
+  and ReverseOp teardown. Load before changing the deploy walk — the skill is
+  OWNED HERE: the candy carries its `skill:` entity and the prose in
+  `.agents/skills/local-deploy/SKILL.md`.
 - `/charly-internals:plugin` — the plugin authoring reference: the `plugin:`
   block, the `deploy` provider class, the per-plugin CUE-schema contract.
 - `/charly-internals:git-workflow` — before any git/PR action.
